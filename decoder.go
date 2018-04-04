@@ -1,12 +1,13 @@
 package tiff
 
 import (
-	"compress/lzw"
 	"compress/zlib"
 	"fmt"
 	"image"
 	"io"
 	"io/ioutil"
+
+	"golang.org/x/image/tiff/lzw"
 
 	"github.com/mdouchement/hdr/hdrcolor"
 )

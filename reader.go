@@ -26,7 +26,6 @@ func (d *decoder) decode(dst image.Image, xmin, ymin, xmax, ymax int) error {
 	if stonits == 0 {
 		stonits = 1
 	}
-	// stonits := math.Pow10(-2)
 
 	// Apply horizontal predictor if necessary.
 	// In this case, p contains the color difference to the preceding pixel.
