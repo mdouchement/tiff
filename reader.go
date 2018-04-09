@@ -6,14 +6,25 @@ package tiff
 // http://www.awaresystems.be/imaging/tiff.html
 // http://www.anyhere.com/gward/pixformat/tiffluv.html (LogL / LogLuv)
 // http://www.anyhere.com/gward/papers/jgtpap1.pdf (LogLuv spec paper)
+//
+// TIFF/EP:
+// https://www.awaresystems.be/imaging/tiff/specification/TIFFPM6.pdf (SubIFD Trees)
+// https://www.loc.gov/preservation/digital/formats/fdd/fdd000073.shtml (TIFF/EP)
+// https://www.loc.gov/preservation/digital/formats/content/tiff_tags.shtml (Tags description)
+// DNG:
+// https://helpx.adobe.com/photoshop/digital-negative.html
+// https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/dng_spec_1.4.0.0.pdf
+// https://rcsumner.net/raw_guide/RAWguide.pdf (processing workflow)
 
 import (
+	"fmt"
 	"image"
 	"io"
 
 	"github.com/mdouchement/hdr"
 	"github.com/mdouchement/hdr/format"
 	"github.com/mdouchement/hdr/hdrcolor"
+	"github.com/mdouchement/thdr/tiff/bayer"
 )
 
 // decode decodes the raw data of an image.
@@ -22,7 +33,7 @@ func (d *decoder) decode(dst image.Image, xmin, ymin, xmax, ymax int) error {
 	rMaxX := minInt(xmax, dst.Bounds().Max.X)
 	rMaxY := minInt(ymax, dst.Bounds().Max.Y)
 	var offset uint
-	stonits := d.firstDouble(tStonits)
+	stonits := d.features[tStonits].double(0)
 	if stonits == 0 {
 		stonits = 1
 	}
@@ -61,6 +72,99 @@ func (d *decoder) decode(dst image.Image, xmin, ymin, xmax, ymax int) error {
 				X, Y, Z := format.LogLuvToXYZ(d.buf[offset], d.buf[offset+1], d.buf[offset+2], d.buf[offset+3])
 				m.SetXYZ(x, y, hdrcolor.XYZ{X: X * stonits, Y: Y * stonits, Z: Z * stonits})
 				offset += 4 // LogLuv is hold on 4 bytes
+			}
+		}
+	case mColorFilterArray:
+		// Described workflow -> https://rcsumner.net/raw_guide/RAWguide.pdf
+		p, err := bayer.GetPattern(d.features[tCFAPattern].val)
+		if err != nil {
+			return err
+		}
+		opts := &bayer.Options{
+			ByteOrder: d.byteOrder,
+			Depth:     int(d.bpp),
+			Width:     rMaxX,
+			Height:    rMaxY,
+			Pattern:   p,
+		}
+		// Step 1 - Linearizing + Luminance ReScale used in Bayer.
+		if t, exists := d.features[tLinearizationTable]; exists {
+			fmt.Println("You may need to linearize the CFA:", t.val)
+		}
+		t, _ := d.features[tBlackLevel]
+		opts.BlackLevel = t.asFloat(0)
+		t, _ = d.features[tWhiteLevel]
+		opts.WhiteLevel = t.asFloat(0)
+
+		// Step 2 - White Balancing
+		if t, exists := d.features[tAsShotNeutral]; exists {
+			// Invert the values and then rescale them all so that the green multiplier is 1.
+			opts.WhiteBalance = make([]float64, len(t.val))
+			for i := range t.val {
+				opts.WhiteBalance[i] = 1 / t.asFloat(i)
+			}
+			opts.WhiteBalance[0] /= opts.WhiteBalance[1]
+			opts.WhiteBalance[1] /= opts.WhiteBalance[1]
+			opts.WhiteBalance[2] /= opts.WhiteBalance[1]
+		} else {
+			opts.WhiteBalance = []float64{1, 1, 1}
+		}
+
+		// Step 3 - Demosaicing
+		bayer := bayer.NewBilinear(d.buf, opts)
+
+		// Step 4 - Color Space Correction  TODO
+		// camToXYZ := []float64{}
+		// if t, exists := d.features[tColorMatrix2]; exists {
+		// 	data := make([]float64, len(t.val))
+		// 	for i := range t.val {
+		// 		data[i] = t.asFloat(i)
+		// 	}
+		// 	xyzToCam := mat.NewDense(3, 3, data) // nbOfRows should be equal to len(d.features[tCFAPlaneColor].val)
+		// 	var im mat.Dense
+		// 	im.Inverse(xyzToCam)
+		// 	camToXYZ = append(camToXYZ, im.RawRowView(0)...)
+		// 	camToXYZ = append(camToXYZ, im.RawRowView(1)...)
+		// 	camToXYZ = append(camToXYZ, im.RawRowView(2)...)
+		// } else if t, exists := d.features[tColorMatrix1]; exists {
+		// 	data := make([]float64, len(t.val))
+		// 	for i := range t.val {
+		// 		data[i] = t.asFloat(i)
+		// 	}
+		// 	xyzToCam := mat.NewDense(3, 3, data) // nbOfRows should be equal to len(d.features[tCFAPlaneColor].val)
+		// 	var im mat.Dense
+		// 	im.Inverse(xyzToCam)
+		// 	camToXYZ = append(camToXYZ, im.RawRowView(0)...)
+		// 	camToXYZ = append(camToXYZ, im.RawRowView(1)...)
+		// 	camToXYZ = append(camToXYZ, im.RawRowView(2)...)
+		// } else {
+		// 	// sRBG->XYZ (D65)
+		// 	camToXYZ = []float64{
+		// 		0.4124564, 0.3575761, 0.1804375,
+		// 		0.2126729, 0.7151522, 0.0721750,
+		// 		0.0193339, 0.1191920, 0.9503041,
+		// 	}
+		// }
+		camToXYZ := []float64{ // sRBG->XYZ (D65)
+			0.4124564, 0.3575761, 0.1804375,
+			0.2126729, 0.7151522, 0.0721750,
+			0.0193339, 0.1191920, 0.9503041,
+		}
+
+		// Step 5 - Brightness & Gamma correction TODO
+
+		//
+		m := dst.(*hdr.XYZ)
+		var r, g, b, X, Y, Z float64
+		for y := ymin; y < rMaxY; y++ {
+			for x := xmin; x < rMaxX; x++ {
+				r, g, b = bayer.At(x, y)
+
+				X = r*camToXYZ[0] + g*camToXYZ[1] + b*camToXYZ[2]
+				Y = r*camToXYZ[3] + g*camToXYZ[4] + b*camToXYZ[5]
+				Z = r*camToXYZ[6] + g*camToXYZ[7] + b*camToXYZ[8]
+
+				m.SetXYZ(x, y, hdrcolor.XYZ{X: X, Y: Y, Z: Z})
 			}
 		}
 	}
@@ -121,8 +225,8 @@ func Decode(r io.Reader) (m image.Image, err error) {
 			blocksDown = (d.config.Height + blockHeight - 1) / blockHeight
 		}
 
-		blockCounts = d.features[tTileByteCounts]
-		blockOffsets = d.features[tTileOffsets]
+		blockCounts = d.features[tTileByteCounts].val
+		blockOffsets = d.features[tTileOffsets].val
 
 	} else {
 		if int(d.firstVal(tRowsPerStrip)) != 0 {
@@ -133,8 +237,8 @@ func Decode(r io.Reader) (m image.Image, err error) {
 			blocksDown = (d.config.Height + blockHeight - 1) / blockHeight
 		}
 
-		blockOffsets = d.features[tStripOffsets]
-		blockCounts = d.features[tStripByteCounts]
+		blockOffsets = d.features[tStripOffsets].val
+		blockCounts = d.features[tStripByteCounts].val
 	}
 
 	// Check if we have the right number of strips/tiles, offsets and counts.
@@ -165,6 +269,13 @@ func Decode(r io.Reader) (m image.Image, err error) {
 			m = hdr.NewXYZ(bounds)
 		} else {
 			err = FormatError("Invalid BitsPerSample for LogLuv format")
+			return
+		}
+	case mColorFilterArray:
+		if d.bpp == 16 {
+			m = hdr.NewXYZ(bounds)
+		} else {
+			err = FormatError("Invalid BitsPerSample for ColorFilterArray format")
 			return
 		}
 	}
