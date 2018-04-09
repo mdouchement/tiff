@@ -64,6 +64,9 @@ func newDecoder(r io.Reader) (*decoder, error) {
 	case pLogLuv:
 		d.mode = mLogLuv
 		d.config.ColorModel = hdrcolor.XYZModel
+	case pColorFilterArray:
+		d.mode = mColorFilterArray
+		d.config.ColorModel = hdrcolor.XYZModel
 	default:
 		return nil, UnsupportedError("color model")
 	}

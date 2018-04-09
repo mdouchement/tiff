@@ -16,6 +16,10 @@ const (
 	beHeader = "MM\x00\x2A" // Header for big-endian files.
 
 	ifdLen = 12 // Length of an IFD entry in bytes.
+
+	// TIFF variants
+	fTIFF = 0
+	fDNG  = 1
 )
 
 // Data types (p. 14-16 of the spec).
@@ -35,10 +39,11 @@ const (
 )
 
 // The length of one instance of each data type in bytes.
-var lengths = [...]uint32{0, 1, 1, 2, 4, 8, 42, 42, 42, 42, 42, 42, 8} // '42' numbers are juste here to set the dtDouble length.
+var lengths = [...]uint32{0, 1, 1, 2, 4, 8, 1, 1, 2, 4, 8, 4, 8}
 
 // Tags (see p. 28-41 of the spec).
 const (
+	tNewSubFileType            = 254
 	tImageWidth                = 256
 	tImageLength               = 257
 	tBitsPerSample             = 258
@@ -62,11 +67,33 @@ const (
 
 	tPredictor    = 317
 	tColorMap     = 320
+	tSubIFDs      = 330 // SubIFD trees
 	tExtraSamples = 338
 	tSampleFormat = 339
 
 	tStonits = 37439
+
+	// TIFF/EP
+	tCFARepeatPatternDim = 33421
+	tCFAPattern          = 33422
+
+	// DNG
+	tDNGVersion         = 50706
+	tDNGBackwardVersion = 50707
+
+	tCFAPlaneColor      = 50710
+	tCFALayout          = 50711
+	tLinearizationTable = 50712
+	tBlackLevel         = 50714
+	tWhiteLevel         = 50717
+	tColorMatrix1       = 50721
+	tColorMatrix2       = 50722
+	tAsShotNeutral      = 50728
+	tBaselineExposure   = 50730
 )
+
+// The Color name of the CFAPatern values.
+var cfaColors = []string{"R", "G", "B"}
 
 // Compression types (defined in various places in the spec and supplements).
 const (
@@ -97,8 +124,9 @@ const (
 	pYCbCr       = 6
 	pCIELab      = 8
 
-	pLogL   = 32844 // GrayScale - CIE Log2(L)
-	pLogLuv = 32845 // Color - CIE Log2(L) (u',v')
+	pColorFilterArray = 32803
+	pLogL             = 32844 // GrayScale - CIE Log2(L)
+	pLogLuv           = 32845 // Color - CIE Log2(L) (u',v')
 )
 
 // Values for the tPredictor tag (page 64-65 of the spec).
@@ -106,6 +134,12 @@ const (
 	prNone          = 1
 	prHorizontal    = 2
 	prFloatingPoint = 3 // Floating point horizontal differencing, a third specification supplement from Adobe
+)
+
+// Value for the tNewSubFileType tag (cf. SubIFDs Trees)
+const (
+	sftPrimaryImage = 0
+	sftThumbnail    = 1
 )
 
 // Values for the tResolutionUnit tag (page 18).
@@ -129,4 +163,5 @@ const (
 	mNYCbCrA
 	mLogL
 	mLogLuv
+	mColorFilterArray
 )
