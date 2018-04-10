@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math"
 
 	"github.com/mdouchement/hdr"
 	"github.com/mdouchement/hdr/format"
@@ -89,12 +90,16 @@ func (d *decoder) decode(dst image.Image, xmin, ymin, xmax, ymax int) error {
 		}
 		// Step 1 - Linearizing + Luminance ReScale used in Bayer.
 		if t, exists := d.features[tLinearizationTable]; exists {
-			fmt.Println("You may need to linearize the CFA:", t.val)
+			fmt.Println("You need to linearize the CFA:", t.val)
 		}
-		t, _ := d.features[tBlackLevel]
-		opts.BlackLevel = t.asFloat(0)
-		t, _ = d.features[tWhiteLevel]
-		opts.WhiteLevel = t.asFloat(0)
+		if t, exists := d.features[tBlackLevel]; exists {
+			opts.BlackLevel = t.asFloat(0)
+		}
+		if t, exists := d.features[tWhiteLevel]; exists {
+			opts.WhiteLevel = t.asFloat(0)
+		} else {
+			opts.WhiteLevel = math.Exp2(float64(d.bpp)) - 1 // Max color channel value
+		}
 
 		// Step 2 - White Balancing
 		if t, exists := d.features[tAsShotNeutral]; exists {
