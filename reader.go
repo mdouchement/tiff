@@ -26,6 +26,7 @@ import (
 	"github.com/mdouchement/hdr/format"
 	"github.com/mdouchement/hdr/hdrcolor"
 	"github.com/mdouchement/thdr/tiff/bayer"
+	"gonum.org/v1/gonum/mat"
 )
 
 // decode decodes the raw data of an image.
@@ -102,61 +103,57 @@ func (d *decoder) decode(dst image.Image, xmin, ymin, xmax, ymax int) error {
 		}
 
 		// Step 2 - White Balancing
-		if t, exists := d.features[tAsShotNeutral]; exists {
-			// Invert the values and then rescale them all so that the green multiplier is 1.
-			opts.WhiteBalance = make([]float64, len(t.val))
-			for i := range t.val {
-				opts.WhiteBalance[i] = 1 / t.asFloat(i)
-			}
-			opts.WhiteBalance[0] /= opts.WhiteBalance[1]
-			opts.WhiteBalance[1] /= opts.WhiteBalance[1]
-			opts.WhiteBalance[2] /= opts.WhiteBalance[1]
-		} else {
-			opts.WhiteBalance = []float64{1, 1, 1}
-		}
+		// if t, exists := d.features[tAsShotNeutral]; exists {
+		// 	// Invert the values and then rescale them all so that the green multiplier is 1.
+		// 	opts.WhiteBalance = make([]float64, len(t.val))
+		// 	for i := range t.val {
+		// 		opts.WhiteBalance[i] = 1 / t.asFloat(i)
+		// 	}
+		// 	opts.WhiteBalance[0] /= opts.WhiteBalance[1]
+		// 	opts.WhiteBalance[1] /= opts.WhiteBalance[1]
+		// 	opts.WhiteBalance[2] /= opts.WhiteBalance[1]
+		// } else {
+		// 	opts.WhiteBalance = []float64{1, 1, 1}
+		// }
+		opts.WhiteBalance = []float64{1, 1, 1}
 
 		// Step 3 - Demosaicing
 		bayer := bayer.NewBilinear(d.buf, opts)
 
 		// Step 4 - Color Space Correction  TODO
-		// camToXYZ := []float64{}
-		// if t, exists := d.features[tColorMatrix2]; exists {
-		// 	data := make([]float64, len(t.val))
-		// 	for i := range t.val {
-		// 		data[i] = t.asFloat(i)
-		// 	}
-		// 	xyzToCam := mat.NewDense(3, 3, data) // nbOfRows should be equal to len(d.features[tCFAPlaneColor].val)
-		// 	var im mat.Dense
-		// 	im.Inverse(xyzToCam)
-		// 	camToXYZ = append(camToXYZ, im.RawRowView(0)...)
-		// 	camToXYZ = append(camToXYZ, im.RawRowView(1)...)
-		// 	camToXYZ = append(camToXYZ, im.RawRowView(2)...)
-		// } else if t, exists := d.features[tColorMatrix1]; exists {
-		// 	data := make([]float64, len(t.val))
-		// 	for i := range t.val {
-		// 		data[i] = t.asFloat(i)
-		// 	}
-		// 	xyzToCam := mat.NewDense(3, 3, data) // nbOfRows should be equal to len(d.features[tCFAPlaneColor].val)
-		// 	var im mat.Dense
-		// 	im.Inverse(xyzToCam)
-		// 	camToXYZ = append(camToXYZ, im.RawRowView(0)...)
-		// 	camToXYZ = append(camToXYZ, im.RawRowView(1)...)
-		// 	camToXYZ = append(camToXYZ, im.RawRowView(2)...)
-		// } else {
-		// 	// sRBG->XYZ (D65)
-		// 	camToXYZ = []float64{
-		// 		0.4124564, 0.3575761, 0.1804375,
-		// 		0.2126729, 0.7151522, 0.0721750,
-		// 		0.0193339, 0.1191920, 0.9503041,
-		// 	}
-		// }
-		camToXYZ := []float64{ // sRBG->XYZ (D65)
-			0.4124564, 0.3575761, 0.1804375,
-			0.2126729, 0.7151522, 0.0721750,
-			0.0193339, 0.1191920, 0.9503041,
+		camToXYZ := []float64{}
+		if t, exists := d.features[tColorMatrix2]; exists {
+			data := make([]float64, len(t.val))
+			for i := range t.val {
+				data[i] = t.asFloat(i)
+			}
+			xyzToCam := mat.NewDense(3, 3, data) // nbOfRows should be equal to len(d.features[tCFAPlaneColor].val)
+			var im mat.Dense
+			im.Inverse(xyzToCam)
+			camToXYZ = append(camToXYZ, im.RawRowView(0)...)
+			camToXYZ = append(camToXYZ, im.RawRowView(1)...)
+			camToXYZ = append(camToXYZ, im.RawRowView(2)...)
+		} else if t, exists := d.features[tColorMatrix1]; exists {
+			data := make([]float64, len(t.val))
+			for i := range t.val {
+				data[i] = t.asFloat(i)
+			}
+			xyzToCam := mat.NewDense(3, 3, data) // nbOfRows should be equal to len(d.features[tCFAPlaneColor].val)
+			var im mat.Dense
+			im.Inverse(xyzToCam)
+			camToXYZ = append(camToXYZ, im.RawRowView(0)...)
+			camToXYZ = append(camToXYZ, im.RawRowView(1)...)
+			camToXYZ = append(camToXYZ, im.RawRowView(2)...)
+		} else {
+			// sRBG->XYZ (D65)
+			camToXYZ = []float64{
+				0.4124564, 0.3575761, 0.1804375,
+				0.2126729, 0.7151522, 0.0721750,
+				0.0193339, 0.1191920, 0.9503041,
+			}
 		}
 
-		// Step 5 - Brightness & Gamma correction TODO
+		// Step 5 - Brightness & Gamma correction TODO (or not because TMO handle it well)
 
 		//
 		m := dst.(*hdr.XYZ)
