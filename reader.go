@@ -25,7 +25,7 @@ import (
 	"github.com/mdouchement/hdr"
 	"github.com/mdouchement/hdr/format"
 	"github.com/mdouchement/hdr/hdrcolor"
-	"github.com/mdouchement/thdr/tiff/bayer"
+	"github.com/mdouchement/tiff/bayer"
 	"gonum.org/v1/gonum/mat"
 )
 
