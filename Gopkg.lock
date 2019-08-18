@@ -2,16 +2,16 @@
 
 
 [[projects]]
-  digest = "1:c65a16ac77d0b1aefc7009cabb6ac5ad05def02025f5be85f450c03f52cc6f86"
+  digest = "1:9b277495efeba85c05a0b638090f3d5f2a080d357de77b028227dcd1b8ac5ef9"
   name = "github.com/lucasb-eyer/go-colorful"
   packages = ["."]
   pruneopts = "UT"
-  revision = "345fbb3dbcdb252d9985ee899a84963c0fa24c82"
-  version = "v1.0"
+  revision = "b3ff143339304443cc5ee1c00995b51090f2c04d"
+  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
-  digest = "1:e46e6f183341d689d8b7f230f95b0a6274fef719c12cfaab9d078778a96d277f"
+  digest = "1:e52cbf3bee02f298f41a3f85c4a12584da38ab8b344c00ed8d50b3cf30a248ab"
   name = "github.com/mdouchement/hdr"
   packages = [
     ".",
@@ -19,7 +19,7 @@
     "hdrcolor",
   ]
   pruneopts = "UT"
-  revision = "0535ac36d849c3be5606d09fa815da120fd98cb4"
+  revision = "cc4cdc5cf7752c5e0ba1a82b757bab7823d1e1a0"
 
 [[projects]]
   branch = "master"
@@ -27,28 +27,7 @@
   name = "golang.org/x/image"
   packages = ["tiff/lzw"]
   pruneopts = "UT"
-  revision = "cd38e8056d9b27bb2f265effa37fb0ea6b8a7f0f"
-
-[[projects]]
-  branch = "master"
-  digest = "1:c12e7200a4cb6bbacbbcee75cdea983082c47d397b21102bec2243e35fce734c"
-  name = "gonum.org/v1/gonum"
-  packages = [
-    "blas",
-    "blas/blas64",
-    "blas/gonum",
-    "floats",
-    "internal/asm/c128",
-    "internal/asm/f32",
-    "internal/asm/f64",
-    "internal/math32",
-    "lapack",
-    "lapack/gonum",
-    "lapack/lapack64",
-    "mat",
-  ]
-  pruneopts = "UT"
-  revision = "16380329fcd8f07227b82c1c92cadea7a1bef000"
+  revision = "3fc05d484e9f77dd51816890e05f2602e4ca4d65"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -58,7 +37,6 @@
     "github.com/mdouchement/hdr/format",
     "github.com/mdouchement/hdr/hdrcolor",
     "golang.org/x/image/tiff/lzw",
-    "gonum.org/v1/gonum/mat",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

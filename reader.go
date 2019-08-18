@@ -276,7 +276,7 @@ func Decode(r io.Reader) (m image.Image, err error) {
 			return
 		}
 	case mColorFilterArray:
-		if d.bpp == 16 {
+		if d.bpp == 16 || d.bpp == 8 {
 			m = hdr.NewXYZ(bounds)
 		} else {
 			err = FormatError("Invalid BitsPerSample for ColorFilterArray format")
