@@ -17,7 +17,7 @@ const (
 
 	ifdLen = 12 // Length of an IFD entry in bytes.
 
-	// TIFF variants
+	// TIFF variantes
 	fTIFF = 0
 	fDNG  = 1
 )
