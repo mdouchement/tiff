@@ -38,13 +38,3 @@ All PRs are welcome.
 3. Commit your changes (git commit -am 'Add some feature')
 5. Push to the branch (git push origin my-new-feature)
 6. Create new Pull Request
-
-As possible, run the following commands to format and lint the code:
-
-```sh
-# Format
-find . -name '*.go' -not -path './vendor*' -exec gofmt -s -w {} \;
-
-# Lint
-gometalinter --config=gometalinter.json ./...
-```
