@@ -7,10 +7,12 @@ import (
 	"io"
 	"io/ioutil"
 
-	"golang.org/x/image/tiff/lzw"
-
 	"github.com/mdouchement/hdr/hdrcolor"
+	"golang.org/x/image/tiff/lzw"
 )
+
+// Debug activates debug prints on stdout.
+var Debug = false
 
 type decoder struct {
 	*idf
@@ -28,6 +30,10 @@ func newDecoder(r io.Reader) (*decoder, error) {
 	idf, err := newIDF(newReaderAt(r))
 	if err != nil {
 		return nil, err
+	}
+
+	if Debug {
+		fmt.Println(idf)
 	}
 
 	d := &decoder{
