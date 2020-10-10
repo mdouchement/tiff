@@ -81,15 +81,21 @@ const (
 	tDNGVersion         = 50706
 	tDNGBackwardVersion = 50707
 
-	tCFAPlaneColor      = 50710
-	tCFALayout          = 50711
-	tLinearizationTable = 50712
-	tBlackLevel         = 50714
-	tWhiteLevel         = 50717
-	tColorMatrix1       = 50721
-	tColorMatrix2       = 50722
-	tAsShotNeutral      = 50728
-	tBaselineExposure   = 50730
+	tCFAPlaneColor          = 50710
+	tCFALayout              = 50711
+	tLinearizationTable     = 50712
+	tBlackLevel             = 50714
+	tWhiteLevel             = 50717
+	tColorMatrix1           = 50721
+	tColorMatrix2           = 50722
+	tCameraCalibration1     = 50723
+	tCameraCalibration2     = 50724
+	tReductionMatrix1       = 50725
+	tReductionMatrix2       = 50726
+	tAsShotNeutral          = 50728
+	tBaselineExposure       = 50730
+	tCalibrationIlluminant1 = 50778
+	tCalibrationIlluminant2 = 50779
 )
 
 // The Color name of the CFAPatern values.
