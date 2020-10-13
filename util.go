@@ -98,10 +98,23 @@ func tagname(t uint16) string {
 		return "ColorMatrix1"
 	case tColorMatrix2:
 		return "ColorMatrix2"
+	case tCameraCalibration1:
+		return "CameraCalibration1"
+	case tCameraCalibration2:
+		return "CameraCalibration2"
+	case tReductionMatrix1:
+		return "ReductionMatrix1"
+	case tReductionMatrix2:
+		return "ReductionMatrix2"
 	case tAsShotNeutral:
 		return "AsShotNeutral"
 	case tBaselineExposure:
 		return "BaselineExposure"
+	case tCalibrationIlluminant1:
+		return "CalibrationIlluminant1"
+	case tCalibrationIlluminant2:
+		return "CalibrationIlluminant2"
+
 	default:
 		return fmt.Sprintf("Unknown(%d)", t)
 	}

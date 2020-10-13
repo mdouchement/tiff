@@ -20,6 +20,10 @@ type decoder struct {
 	mode   imageMode
 	bpp    uint
 
+	// decode decodes the raw data of an image.
+	// It reads from d.buf and writes the strip or tile into dst.
+	decode func(dst image.Image, xmin, ymin, xmax, ymax int) error
+
 	buf   []byte
 	off   int    // Current offset in buf.
 	v     uint32 // Buffer value for reading with arbitrary bit depths.
@@ -63,15 +67,19 @@ func newDecoder(r io.Reader) (*decoder, error) {
 		return nil, UnsupportedError("color model, use Golang's lib for LDR images")
 	case pRGB:
 		d.mode = mRGB
+		d.decode = d.decodeRGB
 		d.config.ColorModel = hdrcolor.RGBModel
 	case pLogL:
 		d.mode = mLogL
+		d.decode = d.decodeLogL
 		d.config.ColorModel = hdrcolor.XYZModel
 	case pLogLuv:
 		d.mode = mLogLuv
+		d.decode = d.decodeLogLuv
 		d.config.ColorModel = hdrcolor.XYZModel
 	case pColorFilterArray:
 		d.mode = mColorFilterArray
+		d.decode = d.decodeColorFilterArray
 		d.config.ColorModel = hdrcolor.XYZModel
 	default:
 		return nil, UnsupportedError("color model")

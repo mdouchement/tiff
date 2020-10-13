@@ -11,15 +11,13 @@ import (
 // Header parser          //
 //------------------------//
 
-type (
-	idf struct {
-		r         io.ReaderAt
-		byteOrder binary.ByteOrder
-		format    int
-		features  map[uint16]tag
-		tree      []map[uint16]tag // IDF-Tree
-	}
-)
+type idf struct {
+	r         io.ReaderAt
+	byteOrder binary.ByteOrder
+	format    int
+	features  map[uint16]tag
+	tree      []map[uint16]tag // IDF-Tree
+}
 
 func newIDF(r io.ReaderAt) (d *idf, err error) {
 	d = &idf{
@@ -148,8 +146,14 @@ func (d *idf) parseIFD(fi int, p []byte) error {
 		tWhiteLevel,
 		tColorMatrix1,
 		tColorMatrix2,
+		tCameraCalibration1,
+		tCameraCalibration2,
+		tReductionMatrix1,
+		tReductionMatrix2,
 		tAsShotNeutral,
-		tBaselineExposure:
+		tBaselineExposure,
+		tCalibrationIlluminant1,
+		tCalibrationIlluminant2:
 		val, dt, err := d.ifdUint(p)
 		if err != nil {
 			return err
@@ -177,7 +181,7 @@ func (d *idf) parseIFD(fi int, p []byte) error {
 			}
 		}
 		// default:
-		// 	fmt.Println(tag, "-", p)
+		// 	fmt.Println(tid, "-", p)
 	}
 	return nil
 }

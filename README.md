@@ -22,6 +22,15 @@ A Golang TIFF codec for HDRi formats. This package is meant to be used with [mdo
 - PackBits
 - SGI Log RLE
 
+## Architecture
+
+|  Object | Description         |
+|:-------:|---------------------|
+|  reader | Decodes the image   |
+| decoder | Decodes the raster  |
+|   idf   | Parses the header   |
+|   tag   | Parses tag's values |
+
 ## License
 
 **BSD-style**
