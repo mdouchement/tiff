@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/mdouchement/hdr"
-	_ "github.com/mdouchement/hdr/codec/crad"
+	_ "github.com/mdouchement/hdr/codec/hli"
 	_ "github.com/mdouchement/hdr/codec/rgbe"
 	"github.com/mdouchement/hdrtool"
 	_ "github.com/mdouchement/tiff"
@@ -44,7 +44,7 @@ func TestLogluv(t *testing.T) {
 }
 
 func TestDNG(t *testing.T) {
-	base, err := load("https://github.com/mdouchement/tiff/releases/download/null/DJI_mavic_randomground.crad")
+	base, err := load("https://github.com/mdouchement/tiff/releases/download/null/DJI_mavic_randomground.hli")
 	assert.NoError(t, err)
 
 	dng, err := load("https://github.com/mdouchement/tiff/releases/download/null/DJI_mavic_randomground.dng")
