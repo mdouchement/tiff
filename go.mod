@@ -7,7 +7,7 @@ require (
 	github.com/mdouchement/hdrtool v0.0.0-20190127122131-f6e120ae3730
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/image v0.3.0
+	golang.org/x/image v0.5.0
 )
 
 require (
